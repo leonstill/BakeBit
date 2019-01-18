@@ -83,7 +83,7 @@ font11 = ImageFont.truetype('DejaVuSansMono.ttf', 11);
 global lock
 lock = threading.Lock()
 
-def get_ip():
+def get_ip_old():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
@@ -94,6 +94,37 @@ def get_ip():
     finally:
         s.close()
     return IP
+
+# For showing every ip address of all interfaces
+# added by leon(leonstill@163.com)
+def get_ip():
+    # get index number 'n'
+    try:
+        fo = open("/tmp/getipcount", "r")
+        n = fo.read(1)
+        if n.strip() == '':
+            n = 1
+        else:
+            n = int(n)
+        fo.close()
+    except IOError:
+        n = 1
+    except PersmissionError:
+        print "You don't have permission to access this file."
+        return ""
+
+    cmd = 'ifconfig | grep -E -o "inet addr:[.0-9]+" | wc -l'
+    IP_total = int(subprocess.check_output(cmd, shell = True))
+    if n > IP_total:
+        n = 1
+
+    fo = open("/tmp/getipcount", "w")
+    fo.write(str(n+1))
+    fo.close()
+
+    cmd = 'ifconfig | grep -E -o "inet addr:[.0-9]+" | grep -E -o "[.0-9]+" | sed -n ' + "'" + str(n) + "p'" 
+    IP = subprocess.check_output(cmd, shell = True )
+    return IP.replace("\n","")
 
 def draw_page():
     global drawing
