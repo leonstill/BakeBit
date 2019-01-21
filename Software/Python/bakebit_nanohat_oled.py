@@ -96,33 +96,33 @@ def get_ip_old():
     return IP
 
 # For showing every ip address of all interfaces
-# added by leon(leonstill@163.com)
+# added by leonstill@163.com 2019-01-22
 def get_ip():
     # get index number 'n'
+    filename = "/tmp/getipcount0"
     try:
-        fo = open("/tmp/getipcount", "r")
+        fo = open(filename, "r")
         n = fo.read(1)
         if n.strip() == '':
-            n = 1
+            n = 0
         else:
             n = int(n)
         fo.close()
     except IOError:
-        n = 1
+        n = 0
     except PersmissionError:
         print "You don't have permission to access this file."
-        return ""
-
-    cmd = 'ifconfig | grep -E -o "inet addr:[.0-9]+" | wc -l'
+        return "-1"
+    cmd = 'ifconfig 2>/dev/null | grep -E -o "inet addr:[.0-9]+" | wc -l'
     IP_total = int(subprocess.check_output(cmd, shell = True))
-    if n > IP_total:
-        n = 1
+    n = n%IP_total + 1
 
-    fo = open("/tmp/getipcount", "w")
-    fo.write(str(n+1))
+    # save 'next index' into file
+    fo = open(filename, "w")
+    fo.write(str(n))
     fo.close()
 
-    cmd = 'ifconfig | grep -E -o "inet addr:[.0-9]+" | grep -E -o "[.0-9]+" | sed -n ' + "'" + str(n) + "p'" 
+    cmd = 'ifconfig 2>/dev/null | grep -E -o "inet addr:[.0-9]+" | grep -E -o "[.0-9]+" | sed -n \'' + str(n) + "p'"
     IP = subprocess.check_output(cmd, shell = True )
     return IP.replace("\n","")
 
